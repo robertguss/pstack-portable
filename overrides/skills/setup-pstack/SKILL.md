@@ -2,7 +2,7 @@
 name: setup-pstack
 description:
   Configure which models pstack uses per role, per harness (Amp, Claude Code,
-  Codex), by editing pstack.config.yaml at the project root. Use for
+  Codex, Grok Build), by editing pstack.config.yaml at the project root. Use for
   /setup-pstack, "configure pstack models", "pstack budget", or changing
   pstack's model choices.
 ---
@@ -24,7 +24,8 @@ it with defaults.
 
 ### 2. Pick the harness
 
-Ask which harness column to change: `amp`, `claude-code`, `codex`, or all three.
+Ask which harness column to change: `amp`, `claude-code`, `codex`,
+`grok`, or all four.
 Default to the harness you are running in.
 
 ### 3. Detect available models
@@ -35,6 +36,7 @@ Default to the harness you are running in.
   any full `claude-*` id the user names.
 - **Codex:** ask the user for the model ids their account has, or keep
   `inherit`.
+- **Grok Build:** run `grok models` and use the ids it lists.
 
 `inherit` is always valid: the role runs on the thread's own model.
 
@@ -43,8 +45,8 @@ Default to the harness you are running in.
 Ask for a budget with these four options: `unlimited — max`, `large — xhigh`,
 `medium — high`, `small — medium`. In Claude Code use AskUserQuestion.
 Elsewhere, ask with numbered options. The budget sets the `@effort` suffix on
-every real model value in the chosen columns. Claude Code ignores effort, so
-skip the budget for that column.
+every real model value in the chosen columns. Claude Code and Grok Build ignore
+effort, so skip the budget for those columns.
 
 Show every role with its current and proposed value. Ask whether to accept, or
 change specific roles. Offer the detected models plus `inherit`. Panel roles

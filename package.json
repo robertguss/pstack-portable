@@ -1,7 +1,7 @@
 {
   "name": "pstack-portable",
   "version": "0.1.0",
-  "description": "Vendor Cursor's pstack plugin into a project for Amp, Claude Code and Codex, with per-role models in pstack.config.yaml.",
+  "description": "Vendor Cursor's pstack plugin into a project for Amp, Claude Code, Codex and Grok Build, with per-role models in pstack.config.yaml.",
   "type": "module",
   "bin": { "pstack-portable": "bin/pstack-sync.mjs" },
   "files": ["bin", "lib", "templates", "overrides", "defaults.json"],

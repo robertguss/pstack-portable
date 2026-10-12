@@ -2,8 +2,9 @@
 
 Vendors [poteto's pstack](https://github.com/cursor/plugins/tree/main/pstack), a
 Cursor plugin, into any project so it works in **Amp** (including Amp Orbs),
-**Claude Code** and **Codex**. You choose the model for each pstack role in a
-`pstack.config.yaml` you commit with the project.
+**Claude Code**, **Codex** and **Grok Build** (xAI's `grok` CLI). You choose
+the model for each pstack role in a `pstack.config.yaml` you commit with the
+project.
 
 This repo holds only the converter and a few overrides, not pstack itself. Each
 sync fetches pstack from upstream, so you never merge upstream changes by hand.
@@ -29,9 +30,10 @@ setup.
 
 | Path                                          | For                | Notes                                                                                                       |
 | --------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
-| `.agents/skills/<skill>/`                     | Amp, Codex         | Every pstack skill, with Cursor paths rewritten and a harness note added                                    |
+| `.agents/skills/<skill>/`                     | Amp, Codex, Grok   | Every pstack skill, with Cursor paths rewritten and a harness note added                                    |
 | `.claude/skills/<skill>`                      | Claude Code        | Symlinks into `.agents/skills/`                                                                             |
 | `.claude/agents/*.md`, `.codex/agents/*.toml` | Claude Code, Codex | `poteto-agent`, `comment-sicko`                                                                             |
+| `.grok/agents/*.md`                           | Grok Build         | Same two agents                                                                                             |
 | `.amp/plugins/pstack.ts`                      | Amp                | `pstack_subagent` tool: runs a subagent on any Amp model, since Amp's built-in Task tool can't take a model |
 | `.agents/pstack/HARNESS.md`                   | all                | Maps pstack's Cursor terms (Task, AskQuestion, transcripts) to each harness                                 |
 | `.agents/pstack/lock.json`                    | sync               | Pinned upstream commit and the list of files sync owns                                                      |
@@ -52,19 +54,23 @@ roles:
     amp: xai/grok-4.6
     claude-code: sonnet
     codex: inherit
+    grok: grok-4.7-build-fast
   arena-runners: # a list is a panel: one subagent per entry
     amp: [anthropic/claude-opus-5@xhigh, xai/grok-4.6]
     claude-code: [opus, sonnet]
     codex: [inherit, inherit]
+    grok: [grok-4.7, grok-4.7-build-fast]
 ```
 
 - `inherit` runs the role on the thread's own model.
-- `model@effort` sets reasoning effort; Claude Code ignores the effort.
+- `model@effort` sets reasoning effort; Claude Code and Grok Build ignore the
+  effort.
 - Edits apply on the next spawn, with no re-sync needed. `/setup-pstack` edits
   the file for you.
-- Amp model ids come from `amp plugins show-agent-options`.
+- Amp model ids come from `amp plugins show-agent-options`; Grok Build ids from
+  `grok models`.
 - The defaults mirror upstream's split: Grok for code, Opus for judgment. Codex
-  defaults to `inherit`.
+  defaults to `inherit`; Grok Build to `grok-4.7` and `grok-4.7-build-fast`.
 
 ## Changing the conversion
 
@@ -85,6 +91,9 @@ roles:
 - Claude Code drops descriptions from its skill listing when there are many
   skills, newest and least-used first. pstack's skills stay invocable by name.
   To fix it, raise `skillListingBudgetFraction` in settings.
+- Grok Build reads `.agents/skills/` itself, but only after you trust the project
+  folder. If you turn on its `subagent_model_inheritance` setting, every role
+  runs on the session's model.
 
 pstack is MIT-licensed, © Lauren Tan. Its LICENSE is copied to
 `.agents/pstack/LICENSE` in every project.

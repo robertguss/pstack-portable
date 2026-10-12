@@ -3,7 +3,7 @@ import { sync } from '../lib/sync.mjs'
 
 const USAGE = `Usage: pstack-portable [sync] [options]
 
-Vendors Cursor's pstack into the current project for Amp, Claude Code and Codex.
+Vendors Cursor's pstack into the current project for Amp, Claude Code, Codex and Grok Build.
 
   --latest        Move the pin to upstream main before syncing
   --ref <sha>     Sync a specific full cursor/plugins commit

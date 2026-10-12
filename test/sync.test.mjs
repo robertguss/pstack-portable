@@ -26,6 +26,7 @@ test('writes skills, wiring, config and lock for every harness', () => {
   assert.ok(fs.existsSync(path.join(dir, '.claude/skills/poteto-mode/SKILL.md')), 'symlink resolves')
 
   assert.doesNotMatch(read(dir, '.claude/agents/poteto-agent.md'), /is_background/)
+  assert.equal(read(dir, '.grok/agents/poteto-agent.md'), read(dir, '.claude/agents/poteto-agent.md'))
   const toml = read(dir, '.codex/agents/poteto-agent.toml')
   assert.match(toml, /^name = "poteto-agent"$/m)
   assert.match(toml, /^description = "Delegate \\"quoted\\" subagent\."$/m)
@@ -35,7 +36,7 @@ test('writes skills, wiring, config and lock for every harness', () => {
   assert.match(plugin, /"poteto-agent": "> \*\*Harness note/)
 
   const config = read(dir, CONFIG)
-  assert.match(config, /^ {2}feature-refactoring: .*\n {4}amp: xai\/grok-4\.6\n {4}claude-code: sonnet\n {4}codex: inherit$/m)
+  assert.match(config, /^ {2}feature-refactoring: .*\n {4}amp: xai\/grok-4\.6\n {4}claude-code: sonnet\n {4}codex: inherit\n {4}grok: grok-4\.7-build-fast$/m)
   assert.match(config, /^ {2}arena-runners: .*\n {4}amp: \[anthropic\/claude-opus-5@xhigh, xai\/grok-4\.6\]$/m)
   assert.ok(JSON.parse(read(dir, LOCK)).files.includes('.amp/plugins/pstack.ts'))
 })
