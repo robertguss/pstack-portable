@@ -1,0 +1,4 @@
+{
+  "claude-opus-5-5-xhigh": { "amp": "anthropic/claude-opus-5@xhigh", "claude-code": "opus", "codex": "inherit" },
+  "grok-4.7-xhigh-fast": { "amp": "xai/grok-4.6", "claude-code": "sonnet", "codex": "inherit" }
+}
