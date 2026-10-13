@@ -77,3 +77,11 @@ test('refuses to overwrite files it did not write unless forced', () => {
   sync(dir, { source, force: true })
   assert.match(read(dir, '.agents/skills/poteto-mode/SKILL.md'), /Harness note/)
 })
+
+test('every override records the upstream file it replaced', () => {
+  const dir = path.join(path.dirname(source), '../../overrides')
+  const bases = JSON.parse(read(dir, 'upstream.json'))
+  const files = fs.readdirSync(dir, { recursive: true })
+    .filter((f) => f !== 'upstream.json' && fs.statSync(path.join(dir, f)).isFile())
+  assert.deepEqual(files.sort(), Object.keys(bases).sort(), 'add or remove the entry in overrides/upstream.json')
+})

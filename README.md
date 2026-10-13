@@ -75,7 +75,9 @@ roles:
 ## Changing the conversion
 
 - `overrides/<path>` replaces that upstream file verbatim.
-  `overrides/skills/setup-pstack/SKILL.md` is one.
+  `overrides/skills/setup-pstack/SKILL.md` is one. Record the upstream commit
+  and sha256 of the file it replaces in `overrides/upstream.json`; the daily
+  Upstream check workflow fails when upstream changes that file.
 - `defaults.json` maps upstream's Cursor model slugs to default values per
   harness. Sync warns about a slug that has no entry.
 - `templates/` holds the Amp plugin and HARNESS.md.
