@@ -1,0 +1,45 @@
+# Daily: convert upstream pstack main into a scratch project. A failed run
+# (GitHub emails you) means upstream changed in a way the converter or
+# defaults.json needs updating for. Nothing is committed; pstack itself is
+# fetched fresh by each project's own `--latest` sync.
+name: Upstream check
+
+on:
+  schedule:
+    - cron: '17 13 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - name: Sync upstream main into a scratch project
+        shell: bash # explicit shell adds pipefail, so a crash before tee still fails
+        run: |
+          mkdir "$RUNNER_TEMP/project"
+          node bin/pstack-sync.mjs --latest --dir "$RUNNER_TEMP/project" | tee "$RUNNER_TEMP/out.txt"
+          if grep -q '^warning:' "$RUNNER_TEMP/out.txt"; then
+            echo "::error::Upstream sync produced warnings; see above."
+            exit 1
+          fi
+      - name: Check overrides still match the upstream files they replaced
+        shell: bash
+        run: |
+          ref=$(jq -r .upstream.ref "$RUNNER_TEMP/project/.agents/pstack/lock.json")
+          stale=0
+          while read -r file base want; do
+            got=$(curl -fsSL "https://raw.githubusercontent.com/cursor/plugins/$ref/pstack/$file" | sha256sum | cut -d' ' -f1)
+            if [ "$got" != "$want" ]; then
+              echo "::error file=overrides/$file::Upstream changed $file. Port it into the override, then update overrides/upstream.json. Changes: https://github.com/cursor/plugins/compare/$base...$ref"
+              stale=1
+            fi
+          done < <(jq -r 'to_entries[] | "\(.key) \(.value.ref) \(.value.sha256)"' overrides/upstream.json)
+          exit $stale
