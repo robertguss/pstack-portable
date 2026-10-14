@@ -6,8 +6,18 @@ Cursor plugin, into any project so it works in **Amp** (including Amp Orbs),
 the model for each pstack role in a `pstack.config.yaml` you commit with the
 project.
 
-This repo holds only the converter and a few overrides, not pstack itself. Each
-sync fetches pstack from upstream, so you never merge upstream changes by hand.
+It converts Cursor's [Thermos](https://github.com/cursor/plugins/tree/main/thermos)
+plugin the same way with `--plugin thermos`: the `thermos`,
+`thermo-nuclear-review` and `thermo-nuclear-code-quality-review` skills plus
+their two review subagents. Thermos names no models, so it has no config.
+
+And [Cursor Team Kit](https://github.com/cursor/plugins/tree/main/cursor-team-kit)
+with `--plugin cursor-team-kit`: CI, review, shipping and verification skills,
+the `ci-watcher` agent, and its Cursor rules. It leaves out its copy of
+`thermo-nuclear-code-quality-review`, which Thermos ships too.
+
+This repo holds only the converter and a few overrides, not the plugins. Each
+sync fetches the plugin from upstream, so you never merge upstream changes by hand.
 
 ## Use
 
@@ -16,12 +26,15 @@ At a project root:
 ```bash
 npx github:robertguss/pstack-portable           # first install, or re-sync the pinned version
 npx github:robertguss/pstack-portable --latest  # update to upstream main
+npx github:robertguss/pstack-portable --plugin thermos  # Thermos; add --latest to update
+npx github:robertguss/pstack-portable --plugin cursor-team-kit
 git status && git diff                          # review, then commit
 ```
 
-Other flags: `--ref <full sha>` to pin a specific upstream commit,
-`--source <dir>` to use a local pstack checkout, `--dir <path>` to sync a
-different project root, `--force` to overwrite paths it didn't write.
+Each plugin has its own pin, so sync each one separately. Other flags:
+`--ref <full sha>` to pin a specific upstream commit, `--source <dir>` to use a
+local plugin checkout, `--dir <path>` to sync a different project root,
+`--force` to overwrite paths it didn't write.
 
 Everything it writes is committed, so orbs and fresh clones need no network or
 setup.
@@ -38,6 +51,18 @@ setup.
 | `.agents/pstack/HARNESS.md`                   | all                | Maps pstack's Cursor terms (Task, AskQuestion, transcripts) to each harness                                 |
 | `.agents/pstack/lock.json`                    | sync               | Pinned upstream commit and the list of files sync owns                                                      |
 | `pstack.config.yaml`                          | you                | Created once, never overwritten; sync only appends roles upstream adds                                      |
+
+Thermos writes the same kinds of files under its own names: its skills and
+`thermo-nuclear-*-subagent` agents, `.agents/thermos/HARNESS.md` and
+`.agents/thermos/lock.json`. It has no Amp plugin and no config; in Amp its
+subagents run through the built-in Task tool.
+
+Cursor Team Kit does the same under `.agents/cursor-team-kit/`, and also writes
+its two always-on Cursor rules (no inline imports, exhaustive TypeScript
+switches) to `.agents/cursor-team-kit/RULES.md`. Sync never edits your
+instructions files, so the rules apply only once you point to them: add
+`@.agents/cursor-team-kit/RULES.md` to `CLAUDE.md` or Amp's `AGENTS.md`, or
+"Follow `.agents/cursor-team-kit/RULES.md`." to `AGENTS.md` for Codex and Grok Build.
 
 Sync only replaces or deletes files listed in `lock.json`. If a path it would
 write already exists and sync didn't create it, sync stops and lists it.
@@ -74,13 +99,16 @@ roles:
 
 ## Changing the conversion
 
-- `overrides/<path>` replaces that upstream file verbatim.
-  `overrides/skills/setup-pstack/SKILL.md` is one. Record the upstream commit
+- `overrides/<plugin>/<path>` replaces that upstream file verbatim.
+  `overrides/pstack/skills/setup-pstack/SKILL.md` is one. Record the upstream commit
   and sha256 of the file it replaces in `overrides/upstream.json`; the daily
   Upstream check workflow fails when upstream changes that file.
 - `defaults.json` maps upstream's Cursor model slugs to default values per
   harness. Sync warns about a slug that has no entry.
-- `templates/` holds the Amp plugin and HARNESS.md.
+- `templates/<plugin>/` holds each plugin's HARNESS.md, and pstack's Amp plugin.
+- `skip` in `PLUGINS` leaves upstream paths out; sync warns when one is gone.
+- To add another cursor/plugins plugin, add it to `PLUGINS` in `lib/sync.mjs`,
+  write `templates/<plugin>/HARNESS.md`, and add it to the upstream check workflow.
 - `npm test` runs the converter against `test/fixture/`.
 
 ## Known limits
@@ -96,6 +124,14 @@ roles:
 - Grok Build reads `.agents/skills/` itself, but only after you trust the project
   folder. If you turn on its `subagent_model_inheritance` setting, every role
   runs on the session's model.
+- Thermos skills set `disable-model-invocation`, so in Claude Code you start
+  them yourself (`/thermos`); its subagents read the rubric skills as files.
 
-pstack is MIT-licensed, © Lauren Tan. Its LICENSE is copied to
-`.agents/pstack/LICENSE` in every project.
+- Agent `model:` frontmatter names Cursor models (such as `fast` on
+  `ci-watcher`), so sync drops it and those agents run on your own model.
+- `pr-review-canvas` opens its page in Cursor's in-app browser. Elsewhere the
+  agent uses a browser tool if it has one, or gives you the URL.
+
+pstack is MIT-licensed, © Lauren Tan. Thermos and Cursor Team Kit are
+MIT-licensed, © Cursor.
+Each LICENSE is copied to `.agents/<plugin>/LICENSE` in every project.

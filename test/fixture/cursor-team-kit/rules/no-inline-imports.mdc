@@ -1,0 +1,8 @@
+---
+description: Keep imports at top
+alwaysApply: true
+---
+
+# No inline imports
+
+Imports go at the top.
