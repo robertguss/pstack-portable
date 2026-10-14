@@ -1,0 +1,7 @@
+---
+description: TS only
+globs: **/*.ts
+alwaysApply: false
+---
+
+Use a never check.
